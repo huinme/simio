@@ -31,20 +31,21 @@ private func main(arguments: [String]) {
             exit(EXIT_FAILURE)
         }
 
+        let device = bootedDevices[index]
         simctl = Simctl()
-        simctl?.startRecording(bootedDevices[index])
-        print("hogehoge")
+        simctl?.startRecording(device)
+
+        // Keep running until user send SIGINT(CTRL+C) signal.
+        while true { }
     } else {
         print("Input valid value")
         exit(EXIT_FAILURE)
     }
 }
 
-main(arguments: CommandLine.arguments)
-
 signal(SIGINT) { signal in
     simctl?.stopRecording()
     exit(EXIT_SUCCESS)
 }
 
-while true { }
+main(arguments: CommandLine.arguments)
