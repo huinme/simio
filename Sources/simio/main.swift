@@ -12,17 +12,17 @@ var simctl: Simctl?
 private func main(arguments: [String]) {
     let bootedDevices = Simctl().bootedDevices()
 
-    bootedDevices.enumerated().forEach {
-        print("\($0): \($1.name) (\($1.runtime))")
-    }
-    print("")
-
     if bootedDevices.isEmpty {
         print("No simulators are running.")
         exit(EXIT_FAILURE)
     }
 
-    print("Choose device number: ")
+    bootedDevices.enumerated().forEach {
+        print("\($0): \($1.name) (\($1.runtime))")
+    }
+    print("")
+
+    print("Choose device: ")
     let inputText = ConsoleIO().waitInput()
 
     if let index = Int(inputText ?? "") {

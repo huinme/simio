@@ -41,7 +41,12 @@ class Simctl {
     }
 
     func startRecording(_ device: SimDevice) {
-        let filePath = "~/Desktop/\(device.filename).mp4"
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyyMMddhhmmss"
+        let timestamp = dateFormatter.string(from: Date())
+
+        let filePath = "~/Desktop/\(device.filename)_\(timestamp).mp4"
         process.arguments = ["xcrun", "simctl", "io", device.udid, "recordVideo", filePath]
 
         let pipe = Pipe()
