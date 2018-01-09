@@ -9,17 +9,13 @@ import Foundation
 
 class ConsoleIO {
 
-    class func waitInput(_ message: String = "", handler: ((String?) -> Void)?) {
-        print(message)
-
-        var shouldWait = true
-        while shouldWait {
+    func waitInput() -> String? {
+        while true {
             let inputData = FileHandle.standardInput.availableData
-            let inputString = String(data: inputData, encoding: .utf8)?.trimmingCharacters(in: .newlines)
+            let string = String(data: inputData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
 
-            if let inputString = inputString, !inputString.isEmpty {
-                handler?(inputString)                
-                shouldWait = false
+            if let string = string, !string.isEmpty {
+                return string
             }
         }
     }

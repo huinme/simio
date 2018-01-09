@@ -9,43 +9,53 @@ import Foundation
 
 class Simctl {
 
-    class func availableDevices() throws -> [SimDevice] {
-        let simctl = Process()
-        simctl.launchPath = "/usr/bin/env"
-        simctl.arguments = ["xcrun", "simctl", "list", "--json"]
+    let process: Process
+
+    init() {
+        self.process = Process()
+        self.process.launchPath = "/usr/bin/env"
+    }
+
+    func bootedDevices() -> [SimDevice] {
+        process.arguments = ["xcrun", "simctl", "list", "--json"]
 
         let pipe = Pipe()
-        simctl.standardOutput = pipe
-        simctl.launch()
+        process.standardOutput = pipe
+        process.launch()
 
         let readHandle = pipe.fileHandleForReading
         let data = readHandle.readDataToEndOfFile()
 
-        let json = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String: Any]
-        let devicesForRuntimes = (json["devices"] as? [String: [[String: String]]]) ?? [:]
+        let json = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String: Any]
+        let devicesForRuntimes = (json?["devices"] as? [String: [[String: String]]]) ?? [:]
 
-        var avaialbleDevices: [SimDevice] = []
+        var bootedDevices: [SimDevice] = []
         devicesForRuntimes.forEach {
             let runtime = $0.key
             let device = $0.value.map({ SimDevice($0, runtime: runtime) })
                 .flatMap({ $0 })
                 .filter({ $0.isBooted })
-            avaialbleDevices.append(contentsOf: device)
+            bootedDevices.append(contentsOf: device)
         }
-        return avaialbleDevices
+        return bootedDevices
     }
 
-    class func startRecording(_ device: SimDevice) -> Process {
+    func startRecording(_ device: SimDevice) {
         let filePath = "~/Desktop/\(device.filename).mp4"
-
-        let simctl = Process()
-        simctl.launchPath = "/usr/bin/env"
-        simctl.arguments = ["xcrun", "simctl", "io", device.udid, "recordVideo", filePath]
+        process.arguments = ["xcrun", "simctl", "io", device.udid, "recordVideo", filePath]
 
         let pipe = Pipe()
-        simctl.standardOutput = pipe
-        simctl.launch()
+        process.standardOutput = pipe
+        process.launch()
 
-        return simctl
+        let readHandle = pipe.fileHandleForReading
+        let data = readHandle.readDataToEndOfFile()
+        if let string = String(data: data, encoding: .utf8) {
+            print(string)
+        }
+    }
+
+    func stopRecording() {
+        process.interrupt()
     }
 }

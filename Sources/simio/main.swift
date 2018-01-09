@@ -7,45 +7,44 @@ import CoreFoundation
 // Command Line Programs on macOS Tutorial
 // - https://www.raywenderlich.com/163134/command-line-programs-macos-tutorial-2
 
-var process: Process?
+var simctl: Simctl?
 
 private func main(arguments: [String]) {
+    let bootedDevices = Simctl().bootedDevices()
 
-    do {
-        let availableDevices = try Simctl.availableDevices()
-        availableDevices.enumerated().forEach {
-            print("\($0): \($1.name) (\($1.runtime))")
-        }
-        print("")
+    bootedDevices.enumerated().forEach {
+        print("\($0): \($1.name) (\($1.runtime))")
+    }
+    print("")
 
-        if availableDevices.isEmpty {
-            print("Error: No simulators are running.")
+    if bootedDevices.isEmpty {
+        print("No simulators are running.")
+        exit(EXIT_FAILURE)
+    }
+
+    print("Choose device number: ")
+    let inputText = ConsoleIO().waitInput()
+
+    if let index = Int(inputText ?? "") {
+        if index < 0 || bootedDevices.count <= index {
+            print("Input number was wrong.")
             exit(EXIT_FAILURE)
         }
 
-        ConsoleIO.waitInput("Choose device number: ") { input in
-            guard let index = Int(input ?? "") else {
-                print("Error: Input valid number of device!!")
-                exit(EXIT_FAILURE)
-            }
-
-            if index < 0 || availableDevices.count <= index {
-                print("Error: Input valid number of device!!")
-                exit(EXIT_FAILURE)
-            }
-
-            let device = availableDevices[index]
-            process = Simctl.startRecording(device)
-        }
-    } catch {
-        print("Error: \(error)")
+        simctl = Simctl()
+        simctl?.startRecording(bootedDevices[index])
+        print("hogehoge")
+    } else {
+        print("Input valid value")
+        exit(EXIT_FAILURE)
     }
 }
 
 main(arguments: CommandLine.arguments)
 
 signal(SIGINT) { signal in
-    process?.interrupt()
+    simctl?.stopRecording()
     exit(EXIT_SUCCESS)
 }
+
 while true { }
